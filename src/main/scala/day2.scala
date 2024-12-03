@@ -1,5 +1,3 @@
-package day2
-
 import scala.io.Source
 
 def mapLineToList(line: String): List[Int] =
@@ -9,70 +7,48 @@ def mapLineToList(line: String): List[Int] =
     .map(_.toInt)
     .toList
 
-def getFileAsLists(): List[List[Int]] =
+def getFileAsLists: List[List[Int]] =
   Source
     .fromResource("day_2.txt")
     .getLines
     .toList
     .map(mapLineToList)
 
-def checkListIncreasingOrDecreasing(list: List[Int]): Boolean =
-  val isIncreasing = list
+def deltaInRange(delta: Int): Boolean =
+  Math.abs(delta) >= 1 && Math.abs(delta) <= 3
+
+def deltaSignMatches(prevDelta: Int, currentDelta: Int): Boolean =
+  prevDelta.sign == currentDelta.sign
+
+def isReportSafe(report: List[Int]): Boolean =
+  report
     .sliding(2)
-    .forall { case List(a, b) => a < b }
-
-  val isDecreasing = list
+    .map { case List(a, b) => b - a }
+    .toList
     .sliding(2)
-    .forall { case List(a, b) => a > b }
+    .forall { case List(a, b) => deltaInRange(a) && deltaInRange(b) && deltaSignMatches(a, b) }
 
-  isIncreasing || isDecreasing
+def countSafeReports(reports: List[List[Int]]): Int =
+  reports
+    .count(isReportSafe)
 
-def checkListIncreasingOrDecreasingWithBadLevel(list: List[Int]): Boolean =
-  def isValidIncreasing(list: List[Int]): Boolean =
-    list.sliding(2).forall { case List(a, b) => a < b }
-
-  def isValidDecreasing(list: List[Int]): Boolean =
-    list.sliding(2).forall { case List(a, b) => a > b }
-
-  var isIncreasing = isValidIncreasing(list)
-  var isDecreasing = isValidDecreasing(list)
-
-  if isIncreasing || isDecreasing then true
-  else
-    list.indices.exists { i =>
-      isIncreasing = isValidIncreasing(list.take(i) ++ list.drop(i + 1))
-      isDecreasing = isValidDecreasing(list.take(i) ++ list.drop(i + 1))
-      isIncreasing || isDecreasing
+def isReportSafeWithDampener(list: List[Int]): Boolean =
+  if isReportSafe(list) then true
+  else list
+    .indices
+    .exists { i =>
+      val newReport = list.take(i) ++ list.drop(i + 1)
+      isReportSafe(newReport)
     }
 
-def checkDifference(list: List[Int]): Boolean =
-  list
-    .sliding(2)
-    .forall { case List(a, b) => Math.abs(a - b) >= 1 && Math.abs(a - b) <= 3 }
-
-def checkDifferenceWithBadLevel(list: List[Int]): Boolean =
-  def isValid(lst: List[Int]): Boolean =
-    lst.sliding(2).forall { case List(a, b) => Math.abs(a - b) >= 1 && Math.abs(a - b) <= 3 }
-
-  if isValid(list) then true
-  else
-    list.indices.exists { i => isValid(list.take(i) ++ list.drop(i + 1)) }
-
-
-def getValidLists(): List[List[Int]] =
-  getFileAsLists()
-    .filter(checkListIncreasingOrDecreasing)
-    .filter(checkDifference)
-
-def getValidListsWithSingleBadElement(): List[List[Int]] =
-  getFileAsLists()
-    .filter(checkListIncreasingOrDecreasingWithBadLevel)
-    .filter(checkDifferenceWithBadLevel)
+def countSafeReportsWithDampener(reports: List[List[Int]]): Int =
+  reports
+    .count(isReportSafeWithDampener)
 
 @main
 def day2(): Unit =
-  val part1 = getValidLists()
-  val part2 = getValidListsWithSingleBadElement()
-
-  println(part1.length)
-  println(part2.length)
+  val reports = getFileAsLists
+  val safeReports = countSafeReports(reports)
+  val safeReportsWithDampener = countSafeReportsWithDampener(reports)
+  println(s"Safe reports: $safeReports")
+  println(s"Safe reports with dampener: $safeReportsWithDampener")
