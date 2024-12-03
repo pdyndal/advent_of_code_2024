@@ -16,61 +16,53 @@ def getValidInstructions(memory: String): List[String] =
 
 def getValidInstructionsExtended(memory: String): List[String] =
   val pattern = """(mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\))|.""".r
+  val mulPattern: Regex = """mul\(\d{1,3},\d{1,3}\)""".r
 
   pattern
-    .replaceAllIn(
-      memory,
-      matched => matched.group(1) match {
-        case null => " "
-        case _ => matched.group(1)
-      }
-    )
-    .split("""\s+""")
-    .filterNot(_.isEmpty)
+    .findAllIn(memory)
+    .filter {
+      case "do()" => true
+      case "don't()" => true
+      case mulPattern() => true
+      case _ => false
+    }
     .toList
 
 def parseMul(instruction: String): (Int, Int) =
   val pattern: Regex = """mul\((\d{1,3}),(\d{1,3})\)""".r
-  val pattern(a, b) = instruction
-  (a.toInt, b.toInt)
+  instruction match {
+    case pattern(a, b) => (a.toInt, b.toInt)
+    case _ => (0, 0)
+  }
 
 def parseConditions(memory: List[String]): List[String] =
-  val pattern = """(do\(\)|don't\(\))""".r
-  var takeMuls = true
-  var instructions = List[String]()
-
-  for instruction <- memory do
-    pattern.findFirstIn(instruction) match
-      case Some("do()") => takeMuls = true
-      case Some("don't()") => takeMuls = false
-      case None => if takeMuls then instructions = instructions :+ instruction
-
-  getValidInstructions(instructions.mkString(""))
+  memory
+    .foldLeft((true, List[String]())) {
+      case ((takeMuls, instructions), instruction) =>
+        instruction match {
+          case "don't()" => (false, instructions)
+          case "do()" => (true, instructions)
+          case _ if takeMuls => (takeMuls, instructions :+ instruction)
+          case _ => (takeMuls, instructions)
+        }
+    }
+    ._2
 
 def part1(memory: String): Int =
-  val instructions = getValidInstructions(memory)
-  val parsedInstructions = instructions
+  getValidInstructions(memory)
     .map(parseMul)
     .map((a, b) => a * b)
     .sum
-
-  parsedInstructions
 
 def part2(memory: String): Int =
-  val instructions = getValidInstructionsExtended(memory)
-  println(instructions)
-  val parsedInstructions = parseConditions(instructions)
+  parseConditions(getValidInstructionsExtended(memory))
     .map(parseMul)
     .map((a, b) => a * b)
     .sum
-
-  parsedInstructions
 
 @main
 def day3(): Unit =
   val memory = getFileAsString
 
-  println(memory)
-  //  println(part1(memory))
-  // too low 83429015
+  println(part1(memory))
   println(part2(memory))
