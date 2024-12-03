@@ -28,35 +28,22 @@ def checkListIncreasingOrDecreasing(list: List[Int]): Boolean =
   isIncreasing || isDecreasing
 
 def checkListIncreasingOrDecreasingWithBadLevel(list: List[Int]): Boolean =
-  var numberOfErrorsIncreasing = 0
-  var numberOfErrorsDecreasing = 0
+  def isValidIncreasing(list: List[Int]): Boolean =
+    list.sliding(2).forall { case List(a, b) => a < b }
 
-  val isIncreasing = list
-    .sliding(2)
-    .forall {
-      case List(a, b) => {
-        if a < b then true
-        else {
-          numberOfErrorsIncreasing += 1
-          numberOfErrorsIncreasing <= 1
-        }
-      }
+  def isValidDecreasing(list: List[Int]): Boolean =
+    list.sliding(2).forall { case List(a, b) => a > b }
+
+  var isIncreasing = isValidIncreasing(list)
+  var isDecreasing = isValidDecreasing(list)
+
+  if isIncreasing || isDecreasing then true
+  else
+    list.indices.exists { i =>
+      isIncreasing = isValidIncreasing(list.take(i) ++ list.drop(i + 1))
+      isDecreasing = isValidDecreasing(list.take(i) ++ list.drop(i + 1))
+      isIncreasing || isDecreasing
     }
-
-  val isDecreasing = list
-    .sliding(2)
-    .forall {
-      case List(a, b) => {
-        if a > b then true
-        else {
-          numberOfErrorsDecreasing += 1
-          numberOfErrorsDecreasing <= 1
-        }
-      }
-    }
-
-  isIncreasing || isDecreasing
-
 
 def checkDifference(list: List[Int]): Boolean =
   list
@@ -64,20 +51,13 @@ def checkDifference(list: List[Int]): Boolean =
     .forall { case List(a, b) => Math.abs(a - b) >= 1 && Math.abs(a - b) <= 3 }
 
 def checkDifferenceWithBadLevel(list: List[Int]): Boolean =
-  var numberOfErrors = 0
+  def isValid(lst: List[Int]): Boolean =
+    lst.sliding(2).forall { case List(a, b) => Math.abs(a - b) >= 1 && Math.abs(a - b) <= 3 }
 
-  list
-    .sliding(2)
-    .forall {
-      case List(a, b) => {
-        if Math.abs(a - b) >= 1 then true
-        else if Math.abs(a - b) <= 3 then true
-        else {
-          numberOfErrors += 1
-          numberOfErrors <= 1
-        }
-      }
-    }
+  if isValid(list) then true
+  else
+    list.indices.exists { i => isValid(list.take(i) ++ list.drop(i + 1)) }
+
 
 def getValidLists(): List[List[Int]] =
   getFileAsLists()
@@ -87,7 +67,7 @@ def getValidLists(): List[List[Int]] =
 def getValidListsWithSingleBadElement(): List[List[Int]] =
   getFileAsLists()
     .filter(checkListIncreasingOrDecreasingWithBadLevel)
-    .filter(checkDifference)
+    .filter(checkDifferenceWithBadLevel)
 
 @main
 def day2(): Unit =
