@@ -7,7 +7,7 @@ def mapLineToTuple(line: String): (Int, Int) =
 
   (split(0).toInt, split(1).toInt)
 
-def getFileAsLists(): (List[Int], List[Int]) =
+def getFileAsTuple: (List[Int], List[Int]) =
   var leftList = List.empty[Int]
   var rightList = List.empty[Int]
 
@@ -23,8 +23,8 @@ def getFileAsLists(): (List[Int], List[Int]) =
 
   (leftList, rightList)
 
-def getListsDistance(): Int =
-  val (leftList, rightList) = getFileAsLists()
+def getListsDistance: Int =
+  val (leftList, rightList) = getFileAsTuple
 
   leftList
     .sorted
@@ -34,16 +34,16 @@ def getListsDistance(): Int =
     }
     .sum
   
-def getSimilarityScore(): Int =
-  val (leftList, rightList) = getFileAsLists()
+def getSimilarityScore: Int =
+  val (leftList, rightList) = getFileAsTuple
 
   leftList
-    .map((item) => {
+    .map( item => {
       item * rightList.count(_ == item)
     })
     .sum
 
 @main
 def day1(): Unit =
-  println(getListsDistance())
-  println(getSimilarityScore())
+  println(getListsDistance)
+  println(getSimilarityScore)
