@@ -37,8 +37,6 @@ def checkDirectionForWord(list: List[List[Char]], point: Point, direction: Direc
     if xCurrent >= 0 && xCurrent < list.length && yCurrent >= 0 && yCurrent < list(xCurrent).length then
       spelledWord += list(xCurrent)(yCurrent)
 
-  if spelledWord == word then
-    println(s"Found word $word at $point in direction $direction")
   spelledWord == word
 
 def part1(list: List[List[Char]]): Int =
@@ -48,13 +46,14 @@ def part1(list: List[List[Char]]): Int =
     y <- list(x).indices
   yield (x, y)
 
-  points
-    .count { point =>
-      directions
-        .exists(
-          checkDirectionForWord(list, point, _)
-        )
-    }
+  var count = 0
+
+  for point <- points do
+    for direction <- directions do
+      if checkDirectionForWord(list, point, direction) then
+        count += 1
+
+  count
 
 @main
 def day4(): Unit =
